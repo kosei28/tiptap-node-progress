@@ -1,0 +1,32 @@
+.tiptap {
+    padding: 10px;
+    border: 2px solid black;
+    outline: none;
+}
+
+.tiptap p {
+    margin: 0;
+}
+
+.tiptap .ProseMirror-selectednode {
+    position: relative;
+}
+.tiptap .ProseMirror-selectednode::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 255, 0.1);
+    pointer-events: none;
+}
+
+.tiptap .image-block-container {
+    cursor: move;
+}
+.tiptap .image-block-container img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+}
+.tiptap .image-block-container .status {
+    text-align: right;
+}
