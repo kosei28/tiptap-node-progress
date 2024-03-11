@@ -19,7 +19,6 @@ function App() {
             Gapcursor,
             customImage({
                 items: [],
-                nodeIds: [],
                 nodeItemStatusMap: new Map(),
             }).configure({
                 allowBase64: true,

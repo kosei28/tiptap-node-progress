@@ -8,12 +8,11 @@ import ImageBlock from '../components/ImageBlock';
 import { Item, ItemStatus, NodeItemStatusMap } from '../types';
 import { useState } from 'react';
 import { uploadImage } from '../utils/upload';
-import { useNodeId } from '../hooks/nodeId';
 import { useOnetime } from '../hooks/onetime';
+import { createId } from '../utils/id';
 
 export function customImage(initialData: {
     items: Item[];
-    nodeIds: string[];
     nodeItemStatusMap: NodeItemStatusMap;
 }) {
     return Image.extend({
@@ -26,7 +25,6 @@ export function customImage(initialData: {
         addStorage() {
             return {
                 items: initialData.items,
-                nodeIds: initialData.nodeIds,
                 nodeItemStatusMap: initialData.nodeItemStatusMap,
             };
         },
@@ -34,19 +32,8 @@ export function customImage(initialData: {
             return ReactNodeViewRenderer(
                 ({ node, updateAttributes }: NodeViewProps) => {
                     const items: Item[] = this.storage.items;
-                    const nodeIds: string[] = this.storage.nodeIds;
                     const nodeItemStatusMap: NodeItemStatusMap =
                         this.storage.nodeItemStatusMap;
-
-                    const nodeId = useNodeId(
-                        node.attrs.nodeId,
-                        nodeIds,
-                        this.editor
-                            .$nodes('image')!
-                            .map((node) => node.attributes.nodeId)
-                            .filter((nodeId) => nodeId !== null),
-                        updateAttributes,
-                    );
 
                     const [item, setItem] = useState<Item | undefined>();
                     const [itemStatus, setItemStatus] = useState<ItemStatus>({
@@ -55,6 +42,20 @@ export function customImage(initialData: {
                     const [progress, setProgress] = useState(0);
 
                     useOnetime(async () => {
+                        let nodeId: string | null = node.attrs.nodeId;
+
+                        if (
+                            nodeId === null ||
+                            !nodeItemStatusMap.has(nodeId) ||
+                            this.editor.$nodes('image', { nodeId })!.length > 1
+                        ) {
+                            nodeId = createId();
+                        }
+
+                        updateAttributes({
+                            nodeId,
+                        });
+
                         const newItemStatus = nodeItemStatusMap.get(nodeId);
 
                         if (
@@ -69,9 +70,6 @@ export function customImage(initialData: {
                             setItemStatus(newItemStatus);
                         } else {
                             nodeItemStatusMap.set(nodeId, itemStatus);
-                            this.storage.nodeIds = [
-                                ...nodeItemStatusMap.keys(),
-                            ];
 
                             const newItem = await uploadImage(
                                 node.attrs.src,
